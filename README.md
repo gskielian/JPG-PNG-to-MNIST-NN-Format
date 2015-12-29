@@ -12,7 +12,7 @@ sudo apt-get install imagemagick php5-imagick
 pip install pillow
 ```
 
-# Transform your images into a Cifar10 Binary:
+# Transform your images into an MNIST NN Ready Binary:
 
 
 1\. Copy-pasta your jpg and/or png images into one of the class folders, as seen in  (e.g. dogs -> 0, cats -> 1, ... giraffes->9)
