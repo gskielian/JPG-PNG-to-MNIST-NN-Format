@@ -1,100 +1,73 @@
-#resize script converts images to 28x28 px pngs
-#this python script for converting 28x28 pixel pngs to MNIST format
-
-from PIL import Image
 import os
+from PIL import Image
 from array import *
+from random import shuffle
 
-def average(pixel):
-  return (pixel[0] + pixel[1] + pixel[2])/3
+# Load from and save to
+Names = [['./training-images','train'], ['./test-images','test']]
 
-folders = ['./training-images', './test-images']
+for name in Names:
+	
+	data_image = array('B')
+	data_label = array('B')
 
-for folder in folders:
-  #reinit data
-  data_image = array('B')
-  data_label = array('B')
+	FileList = []
+	for dirname in os.listdir(name[0])[1:]: # [1:] Excludes .DS_Store from Mac OS
+		path = os.path.join(name[0],dirname)
+		for filename in os.listdir(path):
+			if filename.endswith(".png"):
+				FileList.append(os.path.join(name[0],dirname,filename))
 
-  #TODO get this into a sub-routine
-  #set headers one byte at a time
-  data_image.append(0x00)
-  data_image.append(0x00)
-  data_image.append(0x08)
-  data_image.append(0x03) # magic number for training images
+	shuffle(FileList) # Usefull for further segmenting the validation set
 
-  data_image.append(0x00)
-  data_image.append(0x00)
-  data_image.append(0x00)
-  data_image.append(0x02) # two images, TODO replace with variable
+	for filename in FileList:
 
-  data_image.append(0x00)
-  data_image.append(0x00)
-  data_image.append(0x00)
-  data_image.append(0x1C) # number of rows 28
+		label = int(filename.split('/')[2])
 
-  data_image.append(0x00)
-  data_image.append(0x00)
-  data_image.append(0x00)
-  data_image.append(0x1C) # number of columnns 28
+		Im = Image.open(filename)
 
-  #TODO get this into a sub-routine
-  data_label.append(0x00)
-  data_label.append(0x00)
-  data_label.append(0x08)
-  data_label.append(0x01) # magic number for training images
+		pixel = Im.load()
 
-  data_label.append(0x00)
-  data_label.append(0x00)
-  data_label.append(0x00)
-  data_label.append(0x02) # two images, TODO replace with variable
+		width, height = Im.size
 
-  for dirname, dirnames, filenames in os.walk(folder):
-    for filename in filenames:
-      if filename.endswith('.png'):
+		for x in range(0,width):
+			for y in range(0,height):
+				data_image.append(pixel[y,x])
 
-        im = Image.open(os.path.join(dirname, filename))
-        pix = im.load()
-        #print(os.path.join(dirname, filename))
+		data_label.append(label) # labels start (one unsigned byte each)
 
-        #store the class name from look at path
-        class_name = int(os.path.join(dirname).split('/')[-1])
-        #print class_name
+	hexval = "{0:#0{1}x}".format(len(FileList),6) # number of files in HEX
 
-        ###############################
-        #        MNIST Fork           #
-        #getting image into byte array#
-        ###############################
+	# header for label array
 
-        #append image
-        for x in range(0,28):
-          for y in range(0,28):
-            print average(pix[x,y])
-            data_image.append(average(pix[x,y]))
+	header = array('B')
+	header.extend([0,0,8,1,0,0])
+	header.append(int('0x'+hexval[2:][:2],16))
+	header.append(int('0x'+hexval[2:][2:],16))
+	
+	data_label = header + data_label
 
-        #append label
-        data_label.append(class_name) # labels start (one unsigned byte each)
+	# additional header for images array
+	
+	if max([width,height]) <= 256:
+		header.extend([0,0,0,width,0,0,0,height])
+	else:
+		raise ValueError('Image exceeds maximum size: 256x256 pixels');
 
-  #####################
-  #write all to binary#
-  #####################
+	header[3] = 3 # Changing MSB for image data (0x00000803)
+	
+	data_image = header + data_image
 
-  #TODO make sure to convert if else into string replace for neatness
-  # folders = ['./training-images', './test-images']
-  if folder==folders[0]:
-    output_file = open('train-images-idx3-ubyte', 'wb')
-    data_image.tofile(output_file)
-    output_file.close()
+	output_file = open(name[1]+'-images-idx3-ubyte', 'wb')
+	data_image.tofile(output_file)
+	output_file.close()
 
-    output_file = open('train-labels-idx1-ubyte', 'wb')
-    data_label.tofile(output_file)
-    output_file.close()
-  elif folder==folders[1]:
-    output_file = open('test-images-idx3-ubyte', 'wb')
-    data_image.tofile(output_file)
-    output_file.close()
+	output_file = open(name[1]+'-labels-idx1-ubyte', 'wb')
+	data_label.tofile(output_file)
+	output_file.close()
 
-    output_file = open('test-labels-idx1-ubyte', 'wb')
-    data_label.tofile(output_file)
-    output_file.close()
+# gzip resulting files
 
-
+for name in Names:
+	os.system('gzip '+name[1]+'-images-idx3-ubyte')
+	os.system('gzip '+name[1]+'-labels-idx1-ubyte')
