@@ -36,7 +36,8 @@ for name in Names:
 
 		data_label.append(label) # labels start (one unsigned byte each)
 
-	hexval = "{0:#0{1}x}".format(len(FileList),6) # number of files in HEX
+	#hexval = "{0:#0{1}x}".format(len(FileList),6) # number of files in HEX
+	hexval = hex(int(len(FileList))) # Fixes the above
 
 	# header for label array
 
