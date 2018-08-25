@@ -15,7 +15,7 @@ pip install pillow
 # Transform your images into an MNIST NN Ready Binary:
 
 
-1\. Copy-pasta your jpg and/or png images into one of the class folders, as seen in  (e.g. dogs -> 0, cats -> 1, ... giraffes->9)
+1\. Copy-paste your jpg and/or png images into one of the class folders, as seen in  (e.g. dogs -> 0, cats -> 1, ... giraffes->9)
 
 2\. Change the appropriate labels in `batches.meta.txt`
 
