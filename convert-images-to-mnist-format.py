@@ -15,7 +15,7 @@ for name in Names:
 	for dirname in os.listdir(name[0])[1:]: # [1:] Excludes .DS_Store from Mac OS
 		path = os.path.join(name[0],dirname)
 		for filename in os.listdir(path):
-			if filename.endswith(".png"):
+			if filename.endswith(('.png', '.jpg')): # thanks Harry
 				FileList.append(os.path.join(name[0],dirname,filename))
 
 	shuffle(FileList) # Usefull for further segmenting the validation set
@@ -36,7 +36,8 @@ for name in Names:
 
 		data_label.append(label) # labels start (one unsigned byte each)
 
-	hexval = "{0:#0{1}x}".format(len(FileList),6) # number of files in HEX
+	#hexval = "{0:#0{1}x}".format(len(FileList),6) # number of files in HEX
+	hexval = hex(int(len(FileList))) # Fixes the above
 
 	# header for label array
 
