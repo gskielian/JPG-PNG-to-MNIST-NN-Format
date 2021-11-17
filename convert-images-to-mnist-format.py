@@ -12,7 +12,9 @@ for name in Names:
 	data_label = array('B')
 
 	FileList = []
-	for dirname in os.listdir(name[0])[1:]: # [1:] Excludes .DS_Store from Mac OS
+	for dirname in os.listdir(name[0]):
+		if dirname == '.DS_Store': # Excludes Mac OS metadata file
+			continue
 		path = os.path.join(name[0],dirname)
 		for filename in os.listdir(path):
 			if filename.endswith(".png"):
